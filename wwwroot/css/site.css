@@ -1,0 +1,107 @@
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+ul {
+    list-style-type: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 0;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 20px;
+    width: 100%;
+    max-width: none;
+}
+
+.syntax-tree {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 10px;
+    width: 100%;
+    margin-left: 0;
+}
+
+.lexer-table-container {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 20px;
+}
+
+.lexer-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lexer-table th, .lexer-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.lexer-table th {
+    background-color: #f2f2f2;
+}
+
+.collapsible {
+    cursor: pointer;
+}
+
+#syntaxTreeContainer ul {
+    list-style-type: none;
+    padding-left: 20px;
+    position: relative;
+}
+
+#syntaxTreeContainer ul::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 10px;
+    width: 1px;
+    background-color: #ccc;
+}
+
+#syntaxTreeContainer li {
+    position: relative;
+    margin-bottom: 5px;
+}
+
+#syntaxTreeContainer li.collapsible::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: -10px;
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    border-radius: 50%;
+}
