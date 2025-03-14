@@ -15,7 +15,7 @@
         });
 
         var childrenContainer = document.createElement('div');
-        childrenContainer.style.marginLeft = '20px';
+        childrenContainer.style.marginLeft = '3px';
         li.appendChild(childrenContainer);
 
         for (var i = 0; i < node.Children.length; i++) {
