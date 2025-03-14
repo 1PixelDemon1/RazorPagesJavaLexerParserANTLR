@@ -27,7 +27,7 @@
  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 // $antlr-format alignTrailingComments true, columnLimit 150, maxEmptyLinesToKeep 1, reflowComments false, useTab false
 // $antlr-format allowShortRulesOnASingleLine true, allowShortBlocksOnASingleLine true, minEmptyLines 0, alignSemicolons ownLine
@@ -101,14 +101,14 @@ WITH       : 'with';
 TRANSITIVE : 'transitive';
 
 // Local Variable Type Inference
-VAR: 'var'; // reserved type name
+VAR: 'var';
+// reserved type name
 
 // Switch Expressions
 YIELD: 'yield'; // reserved type name from Java 14
 
 // Records
 RECORD: 'record';
-
 // Sealed Classes
 SEALED     : 'sealed';
 PERMITS    : 'permits';
@@ -116,20 +116,18 @@ NON_SEALED : 'non-sealed';
 
 // Literals
 
-DECIMAL_LITERAL : ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
+DECIMAL_LITERAL : ('0' |(Digits? | '_'+ Digits)) [lL]?;
 HEX_LITERAL     : '0' [xX] [0-9a-fA-F] ([0-9a-fA-F_]* [0-9a-fA-F])? [lL]?;
-OCT_LITERAL     : '0' '_'* [0-7] ([0-7_]* [0-7])? [lL]?;
+OCT_LITERAL     : '0' '_'*([0-7_]*)? [lL]?;
 BINARY_LITERAL  : '0' [bB] [01] ([01_]* [01])? [lL]?;
 
 FLOAT_LITERAL:
     (Digits '.' Digits? | '.' Digits) ExponentPart? [fFdD]?
     | Digits (ExponentPart [fFdD]? | [fFdD])
 ;
-
 HEX_FLOAT_LITERAL: '0' [xX] (HexDigits '.'? | HexDigits? '.' HexDigits) [pP] [+-]? Digits [fFdD]?;
 
 BOOL_LITERAL: 'true' | 'false';
-
 CHAR_LITERAL: '\'' (~['\\\r\n] | EscapeSequence) '\'';
 
 STRING_LITERAL: '"' (~["\\\r\n] | EscapeSequence)* '"';
@@ -137,6 +135,13 @@ STRING_LITERAL: '"' (~["\\\r\n] | EscapeSequence)* '"';
 TEXT_BLOCK: '"""' [ \t]* [\r\n] (. | EscapeSequence)*? '"""';
 
 NULL_LITERAL: 'null';
+
+// String Templates - Java 23
+STR_TEMPLATE_START : 'STR."';
+STR_TEMPLATE_END : '"';
+STRING_TEMPLATE_EXPR_START : '\\{';
+STRING_TEMPLATE_EXPR_END : '}';
+STRING_TEMPLATE_CONTENT : (~["\\{\\"] | EscapeSequence)+;
 
 // Separators
 
@@ -202,7 +207,7 @@ ELLIPSIS : '...';
 
 WS           : [ \t\r\n\u000C]+ -> channel(HIDDEN);
 COMMENT      : '/*' .*? '*/'    -> channel(HIDDEN);
-LINE_COMMENT : '//' ~[\r\n]*    -> channel(HIDDEN);
+LINE_COMMENT : '//' ~[\r\n]* -> channel(HIDDEN);
 
 // Identifiers
 
@@ -211,7 +216,6 @@ IDENTIFIER: Letter LetterOrDigit*;
 // Fragment rules
 
 fragment ExponentPart: [eE] [+-]? Digits;
-
 fragment EscapeSequence:
     '\\' 'u005c'? [btnfr"'\\]
     | '\\' 'u005c'? ([0-3]? [0-7])? [0-7]
@@ -222,9 +226,9 @@ fragment HexDigits: HexDigit ((HexDigit | '_')* HexDigit)?;
 
 fragment HexDigit: [0-9a-fA-F];
 
-fragment Digits: [0-9] ([0-9_]* [0-9])?;
+fragment Digits:([0-9_]*)?;
 
-fragment LetterOrDigit: Letter | [0-9];
+fragment LetterOrDigit: Letter |;
 
 fragment Letter:
     [a-zA-Z$_]                        // these are the "java letters" below 0x7F
@@ -241,11 +245,11 @@ compilationUnit
 
 packageDeclaration
     : annotation* PACKAGE qualifiedName ';'
-    ;
+;
 
 importDeclaration
     : IMPORT STATIC? qualifiedName ('.' '*')? ';'
-    ;
+;
 
 typeDeclaration
     : classOrInterfaceModifier* (
@@ -303,39 +307,40 @@ typeBound
     ;
 
 enumDeclaration
-    : ENUM identifier (IMPLEMENTS typeList)? '{' enumConstants? ','? enumBodyDeclarations? '}'
+    : ENUM identifier (IMPLEMENTS typeList)?
+'{' enumConstants? ','? enumBodyDeclarations? '}'
     ;
 
 enumConstants
     : enumConstant (',' enumConstant)*
     ;
-
 enumConstant
     : annotation* identifier arguments? classBody?
     ;
 
 enumBodyDeclarations
-    : ';' classBodyDeclaration*
+    : ';'
+classBodyDeclaration*
     ;
 
 interfaceDeclaration
-    : INTERFACE identifier typeParameters? (EXTENDS typeList)? (PERMITS typeList)? interfaceBody
+    : INTERFACE identifier typeParameters? (EXTENDS typeList)? (PERMITS typeList)?
+interfaceBody
     ;
 
 classBody
     : '{' classBodyDeclaration* '}'
     ;
-
 interfaceBody
     : '{' interfaceBodyDeclaration* '}'
     ;
 
 classBodyDeclaration
     : ';'
-    | STATIC? block
+    | STATIC?
+block
     | modifier* memberDeclaration
     ;
-
 memberDeclaration
     : recordDeclaration //Java17
     | methodDeclaration
@@ -348,42 +353,37 @@ memberDeclaration
     | classDeclaration
     | enumDeclaration
     ;
-
-/* We use rule this even for void methods which cannot have [] after parameters.
-   This simplifies grammar and we can consider void to be a type, which
-   renders the [] matching as a context-sensitive issue or a semantic check
+/* We use rule this even for void methods which cannot haveafter parameters.
+ This simplifies grammar and we can consider void to be a type, which
+   renders thematching as a context-sensitive issue or a semantic check
    for invalid return type after parsing.
  */
 methodDeclaration
     : typeTypeOrVoid identifier formalParameters ('[' ']')* (THROWS qualifiedNameList)? methodBody
     ;
-
 methodBody
     : block
     | ';'
     ;
-
 typeTypeOrVoid
     : typeType
     | VOID
     ;
-
 genericMethodDeclaration
     : typeParameters methodDeclaration
     ;
-
 genericConstructorDeclaration
     : typeParameters constructorDeclaration
     ;
 
 constructorDeclaration
-    : identifier formalParameters (THROWS qualifiedNameList)? constructorBody = block
+    : identifier formalParameters (THROWS qualifiedNameList)?
+constructorBody = block
     ;
 
 compactConstructorDeclaration
     : modifier* identifier constructorBody = block
     ;
-
 fieldDeclaration
     : typeType variableDeclarators ';'
     ;
@@ -406,20 +406,18 @@ interfaceMemberDeclaration
 
 constDeclaration
     : typeType constantDeclarator (',' constantDeclarator)* ';'
-    ;
+;
 
 constantDeclarator
     : identifier ('[' ']')* '=' variableInitializer
     ;
-
 // Early versions of Java allows brackets after the method name, eg.
-// public int[] return2DArray() [] { ... }
+// public intreturn2DArray(){ ... }
 // is the same as
-// public int[][] return2DArray() { ... }
+// public intreturn2DArray() { ... }
 interfaceMethodDeclaration
     : interfaceMethodModifier* interfaceCommonBodyDeclaration
     ;
-
 // Java8
 interfaceMethodModifier
     : annotation
@@ -429,49 +427,40 @@ interfaceMethodModifier
     | STATIC
     | STRICTFP
     ;
-
 genericInterfaceMethodDeclaration
     : interfaceMethodModifier* typeParameters interfaceCommonBodyDeclaration
     ;
-
 interfaceCommonBodyDeclaration
     : annotation* typeTypeOrVoid identifier formalParameters ('[' ']')* (THROWS qualifiedNameList)? methodBody
     ;
-
 variableDeclarators
     : variableDeclarator (',' variableDeclarator)*
     ;
 
 variableDeclarator
     : variableDeclaratorId ('=' variableInitializer)?
-    ;
+;
 
 variableDeclaratorId
     : identifier ('[' ']')*
     ;
-
 variableInitializer
     : arrayInitializer
     | expression
     ;
-
 arrayInitializer
     : '{' (variableInitializer (',' variableInitializer)* ','?)? '}'
     ;
-
 classOrInterfaceType
     : (identifier typeArguments? '.')* typeIdentifier typeArguments?
     ;
-
 typeArgument
     : typeType
     | annotation* '?' ((EXTENDS | SUPER) typeType)?
     ;
-
 qualifiedNameList
     : qualifiedName (',' qualifiedName)*
     ;
-
 formalParameters
     : '(' (
         receiverParameter?
@@ -479,37 +468,29 @@ formalParameters
         | formalParameterList?
     ) ')'
     ;
-
 receiverParameter
     : typeType (identifier '.')* THIS
     ;
-
 formalParameterList
     : formalParameter (',' formalParameter)* (',' lastFormalParameter)?
     | lastFormalParameter
     ;
-
 formalParameter
     : variableModifier* typeType variableDeclaratorId
     ;
-
 lastFormalParameter
     : variableModifier* typeType annotation* '...' variableDeclaratorId
     ;
-
 // local variable type inference
 lambdaLVTIList
     : lambdaLVTIParameter (',' lambdaLVTIParameter)*
     ;
-
 lambdaLVTIParameter
     : variableModifier* VAR identifier
     ;
-
 qualifiedName
     : identifier ('.' identifier)*
     ;
-
 literal
     : integerLiteral
     | floatLiteral
@@ -518,6 +499,7 @@ literal
     | BOOL_LITERAL
     | NULL_LITERAL
     | TEXT_BLOCK // Java17
+    | stringTemplate // Java23
     ;
 
 integerLiteral
@@ -526,54 +508,45 @@ integerLiteral
     | OCT_LITERAL
     | BINARY_LITERAL
     ;
-
 floatLiteral
     : FLOAT_LITERAL
     | HEX_FLOAT_LITERAL
     ;
-
 // ANNOTATIONS
 altAnnotationQualifiedName
     : (identifier DOT)* '@' identifier
     ;
-
 annotation
     : ('@' qualifiedName | altAnnotationQualifiedName) (
         '(' ( elementValuePairs | elementValue)? ')'
     )?
-    ;
+;
 
 elementValuePairs
     : elementValuePair (',' elementValuePair)*
     ;
-
 elementValuePair
     : identifier '=' elementValue
     ;
-
 elementValue
     : expression
     | annotation
     | elementValueArrayInitializer
     ;
-
 elementValueArrayInitializer
     : '{' (elementValue (',' elementValue)*)? ','? '}'
     ;
-
 annotationTypeDeclaration
     : '@' INTERFACE identifier annotationTypeBody
     ;
-
 annotationTypeBody
     : '{' annotationTypeElementDeclaration* '}'
     ;
-
 annotationTypeElementDeclaration
     : modifier* annotationTypeElementRest
-    | ';' // this is not allowed by the grammar, but apparently allowed by the actual compiler
+    | ';'
+// this is not allowed by the grammar, but apparently allowed by the actual compiler
     ;
-
 annotationTypeElementRest
     : typeType annotationMethodOrConstantRest ';'
     | classDeclaration ';'?
@@ -591,11 +564,9 @@ annotationMethodOrConstantRest
 annotationMethodRest
     : identifier '(' ')' defaultValue?
     ;
-
 annotationConstantRest
     : variableDeclarators
     ;
-
 defaultValue
     : DEFAULT elementValue
     ;
@@ -603,13 +574,13 @@ defaultValue
 // MODULES - Java9
 
 moduleDeclaration
-    : OPEN? MODULE qualifiedName moduleBody
+    : OPEN?
+MODULE qualifiedName moduleBody
     ;
 
 moduleBody
     : '{' moduleDirective* '}'
     ;
-
 moduleDirective
     : REQUIRES requiresModifier* qualifiedName ';'
     | EXPORTS qualifiedName (TO qualifiedName)? ';'
@@ -617,50 +588,40 @@ moduleDirective
     | USES qualifiedName ';'
     | PROVIDES qualifiedName WITH qualifiedName ';'
     ;
-
 requiresModifier
     : TRANSITIVE
     | STATIC
     ;
-
 // RECORDS - Java 17
 
 recordDeclaration
     : RECORD identifier typeParameters? recordHeader (IMPLEMENTS typeList)? recordBody
     ;
-
 recordHeader
     : '(' recordComponentList? ')'
     ;
-
 recordComponentList
     : recordComponent (',' recordComponent)*
     ;
-
 recordComponent
     : typeType identifier
     ;
-
 recordBody
     : '{' (classBodyDeclaration | compactConstructorDeclaration)* '}'
     ;
-
 // STATEMENTS / BLOCKS
 
 block
     : '{' blockStatement* '}'
     ;
-
 blockStatement
     : localVariableDeclaration ';'
     | localTypeDeclaration
     | statement
     ;
-
 localVariableDeclaration
     : variableModifier* (VAR identifier '=' expression | typeType variableDeclarators)
     ;
-
 identifier
     : IDENTIFIER
     | MODULE
@@ -700,7 +661,6 @@ typeIdentifier // Identifiers that are not restricted for type declarations
 localTypeDeclaration
     : classOrInterfaceModifier* (classDeclaration | interfaceDeclaration | recordDeclaration)
     ;
-
 statement
     : blockLabel = block
     | ASSERT expression (':' expression)? ';'
@@ -722,39 +682,32 @@ statement
     | switchExpression ';'? // Java17
     | identifierLabel = identifier ':' statement
     ;
-
 catchClause
     : CATCH '(' variableModifier* catchType identifier ')' block
     ;
-
 catchType
     : qualifiedName ('|' qualifiedName)*
     ;
-
 finallyBlock
     : FINALLY block
     ;
-
 resourceSpecification
     : '(' resources ';'? ')'
     ;
-
 resources
     : resource (';' resource)*
     ;
-
 resource
     : variableModifier* (classOrInterfaceType variableDeclaratorId | VAR identifier) '=' expression
     | qualifiedName
     ;
 
 /** Matches cases then statements, both of which are mandatory.
- *  To handle empty cases at the end, we add switchLabel* to statement.
+ * To handle empty cases at the end, we add switchLabel* to statement.
  */
 switchBlockStatementGroup
     : switchLabel+ blockStatement+
     ;
-
 switchLabel
     : CASE (
         constantExpression = expression
@@ -766,32 +719,28 @@ switchLabel
 
 forControl
     : enhancedForControl
-    | forInit? ';' expression? ';' forUpdate = expressionList?
+    | forInit? ';' expression? ';'
+forUpdate = expressionList?
     ;
 
 forInit
     : localVariableDeclaration
     | expressionList
     ;
-
 enhancedForControl
     : variableModifier* (typeType | VAR) variableDeclaratorId ':' expression
     ;
-
 // EXPRESSIONS
 
 parExpression
     : '(' expression ')'
     ;
-
 expressionList
     : expression (',' expression)*
     ;
-
 methodCall
     : (identifier | THIS | SUPER) arguments
     ;
-
 expression
     // Expression order in accordance with https://introcs.cs.princeton.edu/java/11precedence/
     // Level 16, Primary, array and member access
@@ -810,7 +759,7 @@ expression
     | expression '::' typeArguments? identifier                     #MethodReferenceExpression
     | typeType '::' (typeArguments? identifier | NEW)               #MethodReferenceExpression
     | classType '::' typeArguments? NEW                             #MethodReferenceExpression
-    
+
     // Java17
     | switchExpression                                              #ExpressionSwitch
 
@@ -831,24 +780,15 @@ expression
     | expression bop = ('+' | '-') expression                 #BinaryOperatorExpression
     // Level 10, Shift operators
     | expression ('<' '<' | '>' '>' '>' | '>' '>') expression #BinaryOperatorExpression
-    // Level 9, Relational operators
     | expression bop = ('<=' | '>=' | '>' | '<') expression   #BinaryOperatorExpression
     | expression bop = INSTANCEOF (typeType | pattern)        #InstanceOfOperatorExpression
-    // Level 8, Equality Operators
     | expression bop = ('==' | '!=') expression               #BinaryOperatorExpression
-    // Level 7, Bitwise AND
     | expression bop = '&' expression                         #BinaryOperatorExpression
-    // Level 6, Bitwise XOR
     | expression bop = '^' expression                         #BinaryOperatorExpression
-    // Level 5, Bitwise OR
     | expression bop = '|' expression                         #BinaryOperatorExpression
-    // Level 4, Logic AND
     | expression bop = '&&' expression                        #BinaryOperatorExpression
-    // Level 3, Logic OR
     | expression bop = '||' expression                        #BinaryOperatorExpression
-    // Level 2, Ternary
     | <assoc = right> expression bop = '?' expression ':' expression #TernaryExpression
-    // Level 1, Assignment
     | <assoc = right> expression bop = (
         '='
         | '+='
@@ -870,14 +810,27 @@ expression
 
 // Java17
 pattern
+    : typePattern
+    | recordPattern // Java 19
+    | '_'         // Unnamed pattern - Java 21
+    ;
+
+typePattern
     : variableModifier* typeType annotation* identifier
+    ;
+
+recordPattern
+    : classOrInterfaceType '(' patternList? ')' // Java 19
+    ;
+
+patternList
+    : pattern (',' pattern)* // Java 19
     ;
 
 // Java8
 lambdaExpression
     : lambdaParameters '->' lambdaBody
     ;
-
 // Java8
 lambdaParameters
     : identifier
@@ -885,13 +838,11 @@ lambdaParameters
     | '(' identifier (',' identifier)* ')'
     | '(' lambdaLVTIList? ')'
     ;
-
 // Java8
 lambdaBody
     : expression
     | block
     ;
-
 primary
     : '(' expression ')'
     | THIS
@@ -901,31 +852,28 @@ primary
     | typeTypeOrVoid '.' CLASS
     | nonWildcardTypeArguments (explicitGenericInvocationSuffix | THIS arguments)
     ;
-
 // Java17
 switchExpression
     : SWITCH parExpression '{' switchLabeledRule* '}'
     ;
-
 // Java17
 switchLabeledRule
-    : CASE (expressionList | NULL_LITERAL | guardedPattern) (ARROW | COLON) switchRuleOutcome
+    : CASE (expressionList | NULL_LITERAL | pattern) (ARROW | COLON) switchRuleOutcome // Updated to use pattern - Java 19
     | DEFAULT (ARROW | COLON) switchRuleOutcome
     ;
 
 // Java17
 guardedPattern
     : '(' guardedPattern ')'
-    | variableModifier* typeType annotation* identifier ('&&' expression)*
+    | typePattern ('&&' expression)*
+    | recordPattern ('&&' expression)* // Java 19
     | guardedPattern '&&' expression
     ;
-
 // Java17
 switchRuleOutcome
     : block
     | blockStatement*
     ;
-
 classType
     : (classOrInterfaceType '.')? annotation* identifier typeArguments?
     ;
@@ -952,33 +900,26 @@ arrayCreatorRest
 classCreatorRest
     : arguments classBody?
     ;
-
 explicitGenericInvocation
     : nonWildcardTypeArguments explicitGenericInvocationSuffix
     ;
-
 typeArgumentsOrDiamond
     : '<' '>'
     | typeArguments
     ;
-
 nonWildcardTypeArgumentsOrDiamond
     : '<' '>'
     | nonWildcardTypeArguments
     ;
-
 nonWildcardTypeArguments
     : '<' typeList '>'
     ;
-
 typeList
     : typeType (',' typeType)*
     ;
-
 typeType
     : annotation* (classOrInterfaceType | primitiveType) (annotation* '[' ']')*
     ;
-
 primitiveType
     : BOOLEAN
     | CHAR
@@ -993,17 +934,27 @@ primitiveType
 typeArguments
     : '<' typeArgument (',' typeArgument)* '>'
     ;
-
 superSuffix
     : arguments
     | '.' typeArguments? identifier arguments?
     ;
-
 explicitGenericInvocationSuffix
     : SUPER superSuffix
     | identifier arguments
     ;
-
 arguments
     : '(' expressionList? ')'
+    ;
+
+stringTemplate
+    : STR_TEMPLATE_START stringTemplatePart* STR_TEMPLATE_END
+    ;
+
+stringTemplatePart
+    : STRING_TEMPLATE_CONTENT
+    | stringTemplateExpression
+    ;
+
+stringTemplateExpression
+    : STRING_TEMPLATE_EXPR_START expression STRING_TEMPLATE_EXPR_END
     ;

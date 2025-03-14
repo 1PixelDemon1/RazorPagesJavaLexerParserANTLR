@@ -1,4 +1,5 @@
 ﻿@page
+@using RazorPagesJavaLexerParserANTLR.ANTLR
 @model RazorPagesJavaLexerParserANTLR.Pages.IndexModel
 
 <div class="w-100 container">
@@ -24,12 +25,27 @@
         </div>
     </div>
     <div class="w-100 d-flex justify-content-center">
-        <div class="grid-container" id="treeContainer">
-            <div class="syntax-tree" id="syntaxTreeContainer">
-                <h3>Дерево синтаксического разбора</h3>
-                <div id="syntaxTreeRoot"></div>
+        @if (ViewData["SyntaxErrors"] != null)
+        {
+            <div id="treeContainer">
+                <h3>Ошибки синтаксического разбора:</h3>
+                <ul>
+                    @foreach (var error in ViewData["SyntaxErrors"] as List<AnalysysError>)
+                    {
+                        <li>Line @error.Line, Column @error.CharPositionInLine: @error.Message</li>
+                    }
+                </ul>
             </div>
-        </div>
+        }
+        else {
+            <div id="treeContainer">
+                <div class="syntax-tree" id="syntaxTreeContainer">
+                    <h3>Дерево синтаксического разбора</h3>
+                    <div id="syntaxTreeRoot"></div>
+                </div>
+            </div>
+        }
+        
 
         <div class="lexer-table-container" id="tableContainer" style="display: none">
             <div id="lexerTableWrapper">
@@ -58,22 +74,20 @@
             </div>
         </div>
     </div>
+    <script src="~/js/site.js"></script>
+    <script>
+        document.querySelectorAll('input[name="view"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                document.getElementById('treeContainer').style.display = (this.value === 'tree') ? 'block' : 'none';
+                document.getElementById('tableContainer').style.display = (this.value === 'tree') ? 'none' : 'block';
+            });
+        });
+
+        if ('@Html.Raw(ViewData["ParseTree"])' != '') {
+            var parseTree = JSON.parse('@Html.Raw(ViewData["ParseTree"])');
+            renderTree(parseTree, document.getElementById('syntaxTreeRoot'));
+        }
+
+    </script>
 </div>
 
-<script src="~/js/site.js"></script>
-<script>
-    var parseTree = JSON.parse('@Html.Raw(ViewData["ParseTree"])');
-    renderTree(parseTree, document.getElementById('syntaxTreeRoot'));
-
-    document.querySelectorAll('input[name="view"]').forEach(radio => {
-        radio.addEventListener('change', function () {
-            if (this.value === 'tree') {
-                document.getElementById('treeContainer').style.display = 'block';
-                document.getElementById('tableContainer').style.display = 'none';
-            } else {
-                document.getElementById('treeContainer').style.display = 'none';
-                document.getElementById('tableContainer').style.display = 'block';
-            }
-        });
-    });
-</script>
