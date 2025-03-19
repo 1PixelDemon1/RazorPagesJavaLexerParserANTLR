@@ -2,78 +2,101 @@
 @using RazorPagesJavaLexerParserANTLR.ANTLR
 @model RazorPagesJavaLexerParserANTLR.Pages.IndexModel
 
-<div class="w-100 container">
-    <div class="w-100 d-flex justify-content-center">
-        <form method="post" asp-antiforgery="true">
-            <p class="w-100">
-                <label asp-for="InputExpression">Код</label><br />
-                <textarea asp-for="InputExpression" id="inputTextArea" rows="20" cols="120"></textarea>
-            </p>
-            <input type="submit" value="Отправить" />
-        </form>
-    </div>
-    <div class="w-100 d-flex justify-content-center">
-        <div class="pt-5 view-toggle w-50 d-flex justify-content-between">
-            <div>
-                <input type="radio" id="showTree" name="view" value="tree" checked>
-                <label for="showTree">Дерево синтаксического разбора</label>
+<div class="w-100">
+    <div class="row w-100">
+        <div class="col-sm">
+            <div class="w-100 d-flex justify-content-center">
+                <form method="post" asp-antiforgery="true">
+                    <p class="w-100">
+                        <label asp-for="InputExpression">Код</label><br />
+                        <textarea asp-for="InputExpression" id="inputTextArea" rows="10" cols="60"></textarea>
+                    </p>
+                    <input type="submit" value="Отправить" />
+                </form>
             </div>
-            <div>
-                <input type="radio" id="showTable" name="view" value="table">
-                <label for="showTable">Таблица лексического анализа</label>
-            </div>
+
+            @if (ViewData["SyntaxErrors"] != null)
+            {
+                <div class="w-100 p-5">
+                    <h3>Ошибки синтаксического разбора:</h3>
+                    <ul>
+                        @foreach (var error in ViewData["SyntaxErrors"] as List<AnalysysError>)
+                        {
+                            <li>Line @error.Line, Column @error.CharPositionInLine: @error.Message</li>
+                        }
+                    </ul>
+                </div>
+            }
         </div>
-    </div>
-    <div class="w-100 d-flex justify-content-center">
-        @if (ViewData["SyntaxErrors"] != null)
-        {
-            <div id="treeContainer">
-                <h3>Ошибки синтаксического разбора:</h3>
-                <ul>
-                    @foreach (var error in ViewData["SyntaxErrors"] as List<AnalysysError>)
-                    {
-                        <li>Line @error.Line, Column @error.CharPositionInLine: @error.Message</li>
-                    }
-                </ul>
-            </div>
-        }
-        else {
-            <div id="treeContainer">
-                <div class="syntax-tree" id="syntaxTreeContainer">
-                    <h3>Дерево синтаксического разбора</h3>
-                    <div id="syntaxTreeRoot"></div>
+        
+        <div class="col-sm w-100">
+            <div class="row">
+                <div class="col-1">
+                    <div class="view-toggle">
+                        <div>
+                            <input type="radio" id="showTree" name="view" value="tree" checked>
+                            <label for="showTree">Tree</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="showTable" name="view" value="table">
+                            <label for="showTable">Table</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-11">
+                    <div class="w-100 overflow-scroll min-vh-100 vh-100">
+                        @if (ViewData["SyntaxErrors"] != null)
+                        {
+                            <div id="treeContainer" class="h-50">
+                                <p>Не удалось создать дерево синтаксического анализа</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div id="treeContainer">
+                                <div class="syntax-tree" id="syntaxTreeContainer">
+                                    <h3>Дерево синтаксического разбора</h3>
+                                    <div id="syntaxTreeRoot"></div>
+                                </div>
+                            </div>
+                        }
+
+
+                        <div class="lexer-table-container" id="tableContainer" style="display: none">
+                            <div id="lexerTableWrapper">
+                                <h3>Таблица лексического анализа</h3>
+                                <table class="lexer-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Индекс</th>
+                                            <th>Тип токена</th>
+                                            <th>Значение</th>
+                                            <th>Позиция</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var token in ViewData["Tokens"] as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>())
+                                        {
+                                            <tr>
+                                                <td>@token.Index</td>
+                                                <td class="token-type">@token.TokenType</td>
+                                                <td>@token.Value</td>
+                                                <td>@token.Position</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        }
-        
-
-        <div class="lexer-table-container" id="tableContainer" style="display: none">
-            <div id="lexerTableWrapper">
-                <h3>Таблица лексического анализа</h3>
-                <table class="lexer-table">
-                    <thead>
-                        <tr>
-                            <th>Индекс</th>
-                            <th>Тип токена</th>
-                            <th>Значение</th>
-                            <th>Позиция</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var token in ViewData["Tokens"] as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>())
-                        {
-                            <tr>
-                                <td>@token.Index</td>
-                                <td class="token-type">@token.TokenType</td>
-                                <td>@token.Value</td>
-                                <td>@token.Position</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
         </div>
     </div>
+    
+    
+    
     <script src="~/js/site.js"></script>
     <script>
         document.querySelectorAll('input[name="view"]').forEach(radio => {

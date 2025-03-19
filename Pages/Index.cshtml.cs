@@ -42,13 +42,16 @@ namespace RazorPagesJavaLexerParserANTLR.Pages
             for (int i = 0; i < tokenStream.Size; i++)
             {
                 var token = tokenStream.Get(i);
-                tokens.Add(new
+                if(parser.Vocabulary.GetSymbolicName(token.Type) != "WS")
                 {
-                    Index = i,
-                    TokenType = parser.Vocabulary.GetSymbolicName(token.Type),
-                    Value = token.Text,
-                    Position = $"Line {token.Line}, Column {token.Column}"
-                });
+                    tokens.Add(new
+                    {
+                        Index = i,
+                        TokenType = parser.Vocabulary.GetSymbolicName(token.Type),
+                        Value = token.Text,
+                        Position = $"Line {token.Line}, Column {token.Column}"
+                    });
+                }
             }
 
             ViewData["Tokens"] = tokens;
